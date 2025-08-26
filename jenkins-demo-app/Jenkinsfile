@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:20.10.7'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
     stages {
         stage('Checkout') {
             steps {
@@ -13,14 +8,20 @@ pipeline {
         }
         stage('Build Image') {
             steps {
-                sh 'docker build -t jenkins-demo-app:latest .'
+                sh '''
+                    docker build -t jenkins-demo-app:latest .
+                '''
             }
         }
         stage('Run Container') {
-            agent any
             steps {
+                // ลบ container เก่า ถ้ามี
                 sh 'docker rm -f demo-app || true'
-                sh 'docker run -d -p 5000:5000 --name demo-app jenkins-demo-app:latest'
+
+                // รัน container บน host จริง
+                sh '''
+                    docker run -d -p 5000:5000 --name demo-app jenkins-demo-app:latest
+                '''
             }
         }
     }
